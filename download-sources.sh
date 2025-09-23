@@ -35,6 +35,9 @@ download_if_not_exists "sources/dstat-0.7.4.tar.gz" "https://cors.isteed.cc/http
 # Download iftop
 download_if_not_exists "sources/iftop-1.0pre4.tar.gz" "http://www.ex-parrot.com/pdw/iftop/download/iftop-1.0pre4.tar.gz" "iftop"
 
+# Download iotop
+download_if_not_exists "sources/iotop-1.30.tar.xz" "https://cors.isteed.cc/https://github.com/Tomas-M/iotop/archive/refs/tags/v1.30.tar.xz" "iotop"
+
 # Download nethogs
 if [ -f "sources/nethogs.tar.gz" ]; then
     echo "Skipping nethogs (already exists)"
