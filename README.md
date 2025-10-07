@@ -1,98 +1,117 @@
-# Linux Tools by Static Compile
+# Linux Tools - Static Compile
 
-This project provides statically compiled Linux tools that can run in different environments without dynamic library dependencies.
+This project provides a set of Linux system tools compiled statically to solve compatibility issues caused by dynamic library dependencies across different environments.
+
+## Directory Structure
+
+```
+.
+├── build/                 # Build related files
+│   ├── Dockerfiles/       # Docker build files for each tool
+│   ├── patches/           # Patches for fixing build issues
+│   ├── build-all.sh       # Script to build all tools
+│   └── extract-binaries.sh # Script to extract binaries from Docker images
+├── sources/               # Source code packages for all tools
+├── release/               # Statically compiled binaries
+├── scripts/               # Utility scripts
+│   └── download-sources.sh # Script to download all source packages
+└── README.md
+```
 
 ## Tools Included
 
-1. **atop** - System and process monitor
-2. **dstat** - Versatile resource statistics tool
-3. **htop** - Interactive process viewer
-4. **iftop** - Network interface bandwidth monitoring
-5. **iotop** - I/O usage monitoring
-6. **lsof** - List open files
-7. **mtr** - Network diagnostic tool
-8. **nethogs** - Network bandwidth usage by process
-9. **ngrep** - Network grep tool
-10. **nmap** - Network discovery and security auditing
-11. **perf** - Linux performance monitoring tool
-12. **smartctl** - SMART hard drive monitoring
-13. **ss** - Socket statistics tool
-14. **sysstat** - System performance tools (iostat, sar, pidstat)
-15. **tcpdump** - Network packet analyzer
+1. [atop](https://www.atoptool.nl/) - System and process monitor
+2. [sysstat](https://github.com/sysstat/sysstat) - A collection of performance monitoring tools for Linux (iostat, mpstat, pidstat, sar)
+3. [dstat](https://github.com/dstat-real/dstat) - Versatile resource statistics tool
+4. [htop](https://github.com/htop-dev/htop) - Interactive process viewer
+5. [iftop](http://www.ex-parrot.com/pdw/iftop/) - Display bandwidth usage on an interface
+6. [iotop](https://github.com/Tomas-M/iotop) - Top like utility for I/O
+7. [nethogs](https://github.com/raboof/nethogs) - Net top tool grouping bandwidth per process
+8. [iproute2](https://wiki.linuxfoundation.org/networking/iproute2) - Collection of utilities for controlling TCP/IP networking (ss)
+9. [lsof](https://github.com/lsof-org/lsof) - List open files
+10. [mtr](https://github.com/traviscross/mtr) - Network diagnostic tool
+11. [nmap](https://nmap.org/) - Network discovery and security auditing
+12. [ngrep](https://github.com/jpr5/ngrep) - Network grep
+13. [smartmontools](https://www.smartmontools.org/) - SMART monitoring tools (smartctl)
+14. [perf](https://perf.wiki.kernel.org/) - Linux profiling and tracing tool
+15. [tcpdump](https://www.tcpdump.org/) - Command-line packet analyzer
 
-## How to Build
+## Prerequisites
 
-### Download Source Packages
+- Docker
+- Unix-like system (Linux, macOS, WSL)
+- wget, git, tar
 
-Before building, you need to download the source packages:
+## Usage
+
+### Download source packages
 
 ```bash
+cd scripts
 chmod +x download-sources.sh
 ./download-sources.sh
 ```
 
-This will download all source packages to the `sources/` directory. The build process will use these local copies instead of downloading them each time.
-
-### Build Individual Tool
-
-To build a specific tool, use the corresponding Dockerfile:
+### Build all tools
 
 ```bash
-docker build -f <tool>.Dockerfile -t <tool>-static .
-```
-
-For example, to build htop:
-
-```bash
-docker build -f htop.Dockerfile -t htop-static .
-```
-
-### Extract Static Binary
-
-After building, extract the binary from the Docker image:
-
-```bash
-docker run --rm <tool>-static cat /tools/<tool> > <tool> && chmod +x <tool>
-```
-
-For example, to extract htop:
-
-```bash
-docker run --rm htop-static cat /tools/htop > htop && chmod +x htop
-```
-
-### Build All Tools
-
-Run the build script to build all tools at once:
-
-```bash
+cd build
 chmod +x build-all.sh
 ./build-all.sh
 ```
 
-The binaries will be placed directly in the `release/` directory.
-
-### Extract Binaries Script
-
-You can also use the extraction script to pull binaries from existing Docker images:
+### Build a specific tool
 
 ```bash
+cd build
+docker build -f Dockerfiles/<tool>.Dockerfile -t <tool>-static ..
+```
+
+For example:
+```bash
+cd build
+docker build -f Dockerfiles/htop.Dockerfile -t htop-static ..
+```
+
+### Extract binaries
+
+```bash
+cd build
 chmod +x extract-binaries.sh
 ./extract-binaries.sh
 ```
 
-This will extract all available tools from their respective Docker images directly to the `release/` directory.
+The binaries will be extracted to the [release/](file:///home/zhanglw/github/linux-tools-by-static-compile/release) directory.
 
-## Requirements
+### Extract a specific binary
 
-- Docker
-- Unix-like system (Linux, macOS, WSL)
-- wget, git, tar (for downloading source packages)
+```bash
+# Create a temporary container
+id=$(docker create <tool>-static)
 
-## Benefits
+# Copy the binary
+docker cp $id:/tools/<tool> ../release/<tool>
 
-- **Static linking**: No dependency on shared libraries
-- **Portable**: Binaries can be copied and run on any compatible system
-- **Lightweight**: Minimal footprint
-- **Universal**: Works across different Linux distributions
-- **Efficient**: Source packages downloaded once and reused
+# Remove the temporary container
+docker rm -v $id
+```
+
+## How It Works
+
+1. [download-sources.sh](file:///home/zhanglw/github/linux-tools-by-static-compile/scripts/download-sources.sh) downloads source packages to the [sources/](file:///home/zhanglw/github/linux-tools-by-static-compile/sources) directory
+2. Each `<tool>.Dockerfile` references the source code in [sources/](file:///home/zhanglw/github/linux-tools-by-static-compile/sources) and performs static compilation
+3. `docker build` generates an image containing the static binary
+4. [extract-binaries.sh](file:///home/zhanglw/github/linux-tools-by-static-compile/build/extract-binaries.sh) or `docker run cat` extracts the binary from the image to [release/](file:///home/zhanglw/github/linux-tools-by-static-compile/release)
+
+## Building Process
+
+All tools are built using Alpine Linux with musl libc for static compilation. Each Dockerfile follows a multi-stage build pattern:
+
+1. First stage: Install build dependencies and compile the tool statically
+2. Second stage: Copy the static binary to a scratch image
+
+This ensures that the final binaries have no external dependencies and can run on any x86_64 Linux system.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

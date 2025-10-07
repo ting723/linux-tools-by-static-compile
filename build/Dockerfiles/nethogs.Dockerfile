@@ -9,7 +9,7 @@ RUN apk add --no-cache \
 COPY sources/nethogs.tar.gz /tmp/nethogs.tar.gz
 RUN cd /tmp && \
     tar -zxvf nethogs.tar.gz && \
-    cd nethogs && \
+    cd nethogs-tmp && \
     make CFLAGS="-static" LDFLAGS="-static" -j$(nproc) && \
     cp src/nethogs /usr/local/bin/
 

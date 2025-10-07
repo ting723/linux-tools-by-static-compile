@@ -1,0 +1,25 @@
+diff -ruN iftop-1.0pre4/ui_common.h iftop-1.0pre4/ui_common.h
+--- iftop-1.0pre4/ui_common.h2005-09-12 05:32:00.000000000 +0000
++++ iftop-1.0pre4/ui_common.h2024-01-01 00:00:00.000000000 +0000
+@@ -33,15 +33,12 @@
+ #define UI_COMMON_H
+ 
+ #include "list.h"
+-
+-struct list_head screen_list;
+-struct totals_struct totals;
+-struct peak_struct {
+-    unsigned long long total, recv, sent;
+-} peaktotal, peakrecv, peaksent;
+-struct hash_table *screen_hash;
+-struct hash_table *service_hash;
+-
++extern struct list_head screen_list;
++extern struct totals_struct totals;
++extern struct peak_struct {
++    unsigned long long total, recv, sent;
++} peaktotal, peakrecv, peaksent;
++extern struct hash_table *screen_hash;
++extern struct hash_table *service_hash;
++
+ #endif
